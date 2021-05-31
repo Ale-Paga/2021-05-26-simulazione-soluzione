@@ -50,14 +50,21 @@ public class FXMLController {
     private ComboBox<Year> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbLocale"
-    private ComboBox<?> cmbLocale; // Value injected by FXMLLoader
+    private ComboBox<Business> cmbLocale; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
+    	Business partenza = cmbLocale.getValue();
+    	Business arrivo = model.getMigliore();
+    	double soglia = Double.parseDouble(this.txtX.getText());
     	
+    	//AGGIUNGI controlli 
+    	
+    	List<Business> percorso = model.percorsoMigliore(partenza, arrivo, soglia);
+    	this.txtResult.appendText("Percorso migliore: \n"+percorso.toString()+"\n");
     }
 
     @FXML
@@ -87,6 +94,8 @@ public class FXMLController {
     		this.txtResult.appendText("Grafo creato! \n");
     		this.txtResult.appendText("Numero di vertici: "+model.getVertici()+"\n");
     		this.txtResult.appendText("Numero di archi: "+model.getArchi()+"\n");
+    		this.cmbLocale.getItems().clear(); //la pulisco dai valori del grafo precedente
+    		this.cmbLocale.getItems().addAll(model.getVerticiB());
     		
     	}catch(RuntimeException e) {
     		this.txtResult.setText("Errore: "+e+"\n");

@@ -1,9 +1,11 @@
 package it.polito.tdp.yelp.model;
 
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
@@ -17,6 +19,9 @@ public class Model {
 	private YelpDao dao;
 	private Map<String, Business> idMap;
 	private List<Business> vertici;
+	
+	//variabili per la ricorsione
+	private List<Business>  percorsoBest;
 	
 	public Model() {
 		dao = new YelpDao();
@@ -123,6 +128,90 @@ public class Model {
 		return result;
 		
 		
+	}
+	
+	public List<Business> percorsoMigliore(Business partenza, Business arrivo, double soglia){
+		this.percorsoBest=null;
+		List<Business> parziale = new ArrayList<Business>();
+		parziale.add(partenza);
+		cerca(parziale , 1, arrivo, soglia);
+		//cercaLungo(parziale , 1, arrivo, soglia);
+		return percorsoBest;
+		
+	}
+	
+	private void cerca(List<Business> parziale, int livello, Business arrivo, double soglia) {
+		Business ultimo = parziale.get(parziale.size()-1);
+
+		//caso terminale: ho trovato l'arrivo
+		if(ultimo.equals(arrivo)) {
+			if(this.percorsoBest==null) {
+				this.percorsoBest = new ArrayList<Business>(parziale);
+				return;
+			}else if(parziale.size()<percorsoBest.size()) {
+				this.percorsoBest= new ArrayList<Business>(parziale);
+				return;
+			}else {
+				return;
+			}
+		}
+		
+		//generazione dei percorsi
+		//cerca i successori di 'ultimo'
+		for(DefaultWeightedEdge e: grafo.outgoingEdgesOf(ultimo)) {
+			if(this.grafo.getEdgeWeight(e)>soglia) {
+				//fai ricorsione
+				//controlla anche che la destinazione non sia già in parziale
+				Business prossimo = Graphs.getOppositeVertex(grafo, e, ultimo);
+				
+				if(!parziale.contains(prossimo)) {
+					parziale.add(prossimo);
+					cerca(parziale, livello+1, arrivo, soglia);
+					parziale.remove(parziale.size()-1);
+				}
+				
+				
+			}
+		}
+	}
+	
+	private void cercaLungo(List<Business> parziale, int livello, Business arrivo, double soglia) {
+		Business ultimo = parziale.get(parziale.size()-1);
+
+		//caso terminale: ho trovato l'arrivo
+		if(ultimo.equals(arrivo)) {
+			if(this.percorsoBest==null) {
+				this.percorsoBest = new ArrayList<Business>(parziale);
+				return;
+			}else if(parziale.size()>percorsoBest.size()) {
+				this.percorsoBest= new ArrayList<Business>(parziale);
+				return;
+			}else {
+				return;
+			}
+		}
+		
+		//generazione dei percorsi
+		//cerca i successori di 'ultimo'
+		for(DefaultWeightedEdge e: grafo.outgoingEdgesOf(ultimo)) {
+			if(this.grafo.getEdgeWeight(e)>soglia) {
+				//fai ricorsione
+				//controlla anche che la destinazione non sia già in parziale
+				Business prossimo = Graphs.getOppositeVertex(grafo, e, ultimo);
+				
+				if(!parziale.contains(prossimo)) {
+					parziale.add(prossimo);
+					cerca(parziale, livello+1, arrivo, soglia);
+					parziale.remove(parziale.size()-1);
+				}
+				
+				
+			}
+		}
+	}
+	
+	public Set<Business> getVerticiB() {
+		return this.grafo.vertexSet();
 	}
 	
 }
