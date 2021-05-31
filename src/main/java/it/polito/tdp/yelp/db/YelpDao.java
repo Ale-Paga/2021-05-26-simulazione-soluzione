@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import it.polito.tdp.yelp.model.Adiacenza;
+import it.polito.tdp.yelp.model.ArcoGrafo;
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
 import it.polito.tdp.yelp.model.User;
@@ -190,26 +190,31 @@ public class YelpDao {
 		}
 	}
 	
-	public List<Adiacenza> getAdiacenze(String city, int year, Map<String, Business> idMap){
-		String sql = "SELECT b1.business_id AS b1, b2.business_id AS b2, (AVG(r1.stars)-AVG(r2.stars)) AS diff "
+	public List<ArcoGrafo> calcolaArchi(String city, Year anno){
+		/*String sql = "SELECT b1.business_id AS b1, b2.business_id AS b2, (AVG(r1.stars)-AVG(r2.stars)) AS diff "
 				+ "FROM business AS b1, business AS b2, reviews AS r1, reviews AS r2 "
 				+ "WHERE b1.business_id=r1.business_id AND b2.business_id=r2.business_id AND b1.business_id!=b2.business_id AND YEAR(r1.review_date)=? AND YEAR(r2.review_date)=? "
 				+ "		AND b1.city=? AND  b2.city=? "
 				+ "GROUP BY b1.business_id, b2.business_id "
-				+ "HAVING (AVG(r1.stars)-AVG(r2.stars))>0 ";
-		List<Adiacenza> result = new ArrayList<Adiacenza>();
+				+ "HAVING (AVG(r1.stars)-AVG(r2.stars))>0 ";*/
+		
+		String sql ="SELECT b1.business_id as b1, b2.business_id as b2, (AVG(r2.stars)-AVG(r1.stars)) AS diff "
+				+ "FROM business AS b1, business AS b2, reviews AS r1, reviews AS r2 "
+				+ "WHERE b1.business_id=r1.business_id AND b2.business_id=r2.business_id AND b1.business_id<>b2.business_id AND YEAR(r1.review_date)= ? AND YEAR(r1.review_date)=YEAR(r2.review_date) "
+				+ "		AND b1.city= ? AND  b1.city=b2.city "
+				+ "GROUP BY b1.business_id, b2.business_id "
+				+ "HAVING diff>0 ";
+		List<ArcoGrafo> result = new ArrayList<ArcoGrafo>();
 		Connection conn = DBConnect.getConnection();
 
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setInt(1, year);
-			st.setInt(2, year);
-			st.setString(3, city);
-			st.setString(4, city);
+			st.setInt(1, anno.getValue());
+			st.setString(2, city);
 			ResultSet res = st.executeQuery();
 			while (res.next()) {
 
-				Adiacenza a = new Adiacenza(idMap.get(res.getString("b2")), idMap.get(res.getString("b1")), res.getInt("diff"));
+				ArcoGrafo a = new ArcoGrafo(res.getString("b1"), res.getString("b2"), res.getDouble("diff"));
 				result.add(a);
 			}
 			res.close();
@@ -218,8 +223,9 @@ public class YelpDao {
 			return result;
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException("Error in DB", e);
+			//e.printStackTrace();  il throw stampa un errore più comprensibile
+			//return null;
 		}
 	}
 	

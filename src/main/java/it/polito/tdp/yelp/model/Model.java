@@ -15,7 +15,7 @@ import it.polito.tdp.yelp.db.YelpDao;
 public class Model {
 	private SimpleDirectedWeightedGraph<Business, DefaultWeightedEdge> grafo;
 	private YelpDao dao;
-	//private Map<String, Business> idMap;
+	private Map<String, Business> idMap;
 	private List<Business> vertici;
 	
 	public Model() {
@@ -30,17 +30,53 @@ public class Model {
 		
 		//dao.getBusinessByCityAndYear(city, year, idMap);
 		vertici = dao.getBusinessByCityAndYear(city, year);
-		
+		idMap = new HashMap<String, Business>();
+		for(Business b: vertici) {
+			this.idMap.put(b.getBusinessId(), b);
+		}
 		
 		//Graphs.addAllVertices(grafo, idMap.values());
 		Graphs.addAllVertices(grafo, vertici);
-		System.out.println("Num of vertex "+ grafo.vertexSet().size());
 		
-		for(Adiacenza a : dao.getAdiacenze(city, year, idMap)) {
-			Graphs.addEdge(grafo, a.getB1(), a.getB2(), a.getPeso());
+/////////IPOTESI 1: calcolare la media recensioni mentre leggo i business (non ho carico sul dao)
+		/*for(Business b1: this.vertici) {
+			for(Business b2: this.vertici) {
+				if(b1.getMediaRecensioni < b2.getMediaRecensioni) {
+					Graphs.addEdge(this.grafo, b1, b2, b2.getMediaRecensioni-b1.getMediaRecensioni);
+				}else if(b1.getMediaRecensioni > b2.getMediaRecensioni) {
+					
+				}else if(b1.getMediaRecensioni == b2.getMediaRecensioni) {
+					
+				}
+			}
+		}*/
+		
+////////IPOTESI 2: non modifico l'oggetto businnes ma creo una mappa una mappa per ricordarmi le medie delle recensioni (ho carico sul dao)
+		/*Map<Business, Double> mediaRecensioni = new HashMap<Business, Double>();
+		//carica la mappa con il DAO
+		for(Business b1: this.vertici) {
+			for(Business b2: this.vertici) {
+				if(mediaRecensioni.get(b1) < mediaRecensioni.get(b2)) {
+					Graphs.addEdge(this.grafo, b1, b2, mediaRecensioni.get(b2)-mediaRecensioni.get(b1));
+				}else if(mediaRecensioni.get(b1) > mediaRecensioni.get(b2)) {
+					
+				}else if(mediaRecensioni.get(b1) == mediaRecensioni.get(b2)) {
+					
+				}
+			}
+		}*/
+////////IPOTESI 3: faccio calcolare gli archi al DB
+		List<ArcoGrafo> archi = dao.calcolaArchi(city, year);
+		
+		for(ArcoGrafo a : archi) {
+			Graphs.addEdge(grafo, 
+					this.idMap.get(a.getBusiness_Id1()), 
+					this.idMap.get(a.getBusiness_Id2()), 
+					a.getPeso());
 		}
-		
-		System.out.println("Num of edge "+ grafo.edgeSet().size());
+		String.format("Grafo creato con %d vertici e %d archi\n",
+				this.grafo.vertexSet().size(),
+				this.grafo.edgeSet().size()) ;
 	}
 	
 	public int getVertici() {
@@ -56,7 +92,7 @@ public class Model {
 	}
 	
 	public Business getMigliore() {
-		if(this.grafo==null) {
+		/*if(this.grafo==null) {
 			throw new RuntimeException("Grafo inesistente");
 		}
 		Business migliore = null;
@@ -68,8 +104,24 @@ public class Model {
 			if(grafo.degreeOf(migliore)<grafo.degreeOf(b)) {
 				migliore =b;
 			}
+		}*/
+		double max =0.0;
+		Business result = null;
+		for(Business b : this.grafo.vertexSet()) {
+			double val =0.0;
+			for(DefaultWeightedEdge e: grafo.incomingEdgesOf(b)) {
+				val+=grafo.getEdgeWeight(e);
+			}
+			for(DefaultWeightedEdge e: grafo.outgoingEdgesOf(b)) {
+				val-=grafo.getEdgeWeight(e);
+			}
+			if(val>max) {
+				max=val;
+				result=b;
+			}
 		}
-		return migliore;
+		return result;
+		
 		
 	}
 	
