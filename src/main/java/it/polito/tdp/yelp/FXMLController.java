@@ -5,6 +5,7 @@
 package it.polito.tdp.yelp;
 
 import java.net.URL;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class FXMLController {
     private TextField txtX; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbAnno"
-    private ComboBox<String> cmbAnno; // Value injected by FXMLLoader
+    private ComboBox<Year> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbLocale"
     private ComboBox<?> cmbLocale; // Value injected by FXMLLoader
@@ -119,7 +120,10 @@ public class FXMLController {
     public void setModel(Model model) {
     	this.model = model;
     	
-    	this.cmbAnno.getItems().addAll("2005","2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013");
     	this.cmbCitta.getItems().addAll(model.getAllCity());
+    	//this.cmbAnno.getItems().addAll("2005","2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013");
+    	for(int anno=2005; anno<=2013; anno++) {
+    		this.cmbAnno.getItems().add(Year.of(anno));
+    	}
     }
 }

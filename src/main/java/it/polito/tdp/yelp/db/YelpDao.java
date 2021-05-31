@@ -151,7 +151,8 @@ public class YelpDao {
 	
 	public List<String> getAllCity(){
 		String sql = "SELECT DISTINCT(city) "
-				+ "FROM business ";
+				+ "FROM business "
+				+ "ORDER BY city ";
 		List<String> result = new ArrayList<String>();
 		Connection conn = DBConnect.getConnection();
 
@@ -167,8 +168,9 @@ public class YelpDao {
 			return result;
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException("Error in DB", e);
+			//e.printStackTrace();  il throw stampa un errore più comprensibile
+			//return null;
 		}
 	}
 	
