@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,16 +51,28 @@ public class YelpDao {
 		}
 	}
 	
-	public void getAllBusinessNeeded(String city, int year, Map<String, Business> idMap){
+	public List<Business> getBusinessByCityAndYear(String city, Year anno){
+		//String sql = "SELECT b.* "
+		//		+ "FROM business AS b, reviews AS r "
+		//		+ "WHERE b.business_id=r.business_id AND b.city='Phoenix' AND YEAR(r.review_date)=2005 "
+		//		+ "GROUP BY b.business_id ";
 		String sql = "SELECT * "
-				+ "FROM business AS b, reviews AS r "
-				+ "WHERE b.business_id=r.business_id AND b.city=? AND YEAR(r.review_date)=? ";
+				+ "FROM business AS b "
+				+ "WHERE  b.city= ? "
+				+ "AND ( "
+				+ "		SELECT COUNT(*) "
+				+ "		FROM reviews AS r "
+				+ "		WHERE b.business_id = r.business_id "
+				+ "		AND YEAR(r.review_date) = ? "
+				+ "	) >0 "
+				+ "ORDER BY b.business_name ASC ";
+		List<Business> result = new ArrayList<Business>();
 		Connection conn = DBConnect.getConnection();
 
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
 			st.setString(1, city);
-			st.setInt(2, year);
+			st.setInt(2, anno.getValue());
 			ResultSet res = st.executeQuery();
 			while (res.next()) {
 
@@ -75,14 +88,17 @@ public class YelpDao {
 						res.getDouble("longitude"),
 						res.getString("state"),
 						res.getDouble("stars"));
-				idMap.put(business.getBusinessId(), business);
+				//idMap.put(business.getBusinessId(), business);
+				result.add(business);
 			}
 			res.close();
 			st.close();
 			conn.close();
+			return result;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	

@@ -63,20 +63,20 @@ public class FXMLController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	this.txtResult.clear();
-    	int anno;
+    	Year anno;
     	String città;
     	
-    	try {
-    		anno = Integer.parseInt(this.cmbAnno.getValue());
-    	}catch(NumberFormatException e) {
-    		this.txtResult.setText("Inserire un anno");
+    	
+    	anno = this.cmbAnno.getValue();
+    	if(anno==null ) {
+    		this.txtResult.setText("Inserire una anno");
     		return;
     	}
     	
     	
     	
     	città = this.cmbCitta.getValue();
-    	if(città==null) {
+    	if(città==null ) {
     		this.txtResult.setText("Inserire una città");
     		return;
     	}

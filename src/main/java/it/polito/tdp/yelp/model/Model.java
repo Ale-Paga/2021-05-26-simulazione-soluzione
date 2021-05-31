@@ -1,5 +1,6 @@
 package it.polito.tdp.yelp.model;
 
+import java.time.Year;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,20 +15,25 @@ import it.polito.tdp.yelp.db.YelpDao;
 public class Model {
 	private SimpleDirectedWeightedGraph<Business, DefaultWeightedEdge> grafo;
 	private YelpDao dao;
-	private Map<String, Business> idMap;
+	//private Map<String, Business> idMap;
+	private List<Business> vertici;
 	
 	public Model() {
 		dao = new YelpDao();
-		idMap = new HashMap<String, Business>();
+		//idMap = new HashMap<String, Business>();
 		
 	}
 	
 	
-	public void creaGrafo(String city, int year) {
+	public void creaGrafo(String city, Year year) {
 		grafo = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
-		dao.getAllBusinessNeeded(city, year, idMap);
 		
-		Graphs.addAllVertices(grafo, idMap.values());
+		//dao.getBusinessByCityAndYear(city, year, idMap);
+		vertici = dao.getBusinessByCityAndYear(city, year);
+		
+		
+		//Graphs.addAllVertices(grafo, idMap.values());
+		Graphs.addAllVertices(grafo, vertici);
 		System.out.println("Num of vertex "+ grafo.vertexSet().size());
 		
 		for(Adiacenza a : dao.getAdiacenze(city, year, idMap)) {
