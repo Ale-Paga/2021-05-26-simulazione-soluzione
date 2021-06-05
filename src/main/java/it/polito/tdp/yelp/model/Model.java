@@ -201,7 +201,7 @@ public class Model {
 				
 				if(!parziale.contains(prossimo)) {
 					parziale.add(prossimo);
-					cerca(parziale, livello+1, arrivo, soglia);
+					cercaLungo(parziale, livello+1, arrivo, soglia);
 					parziale.remove(parziale.size()-1);
 				}
 				
